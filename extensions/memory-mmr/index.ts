@@ -1,4 +1,3 @@
-import { registerMemoryReranker } from "openclaw/plugin-sdk/memory-core-host-engine-reranker";
 import { definePluginEntry } from "openclaw/plugin-sdk/plugin-entry";
 import { mmrRerank } from "./src/mmr-reranker.js";
 
@@ -24,19 +23,10 @@ export function createMMRRerankerProvider() {
 
 export default definePluginEntry({
   id: "memory-mmr",
-  activation: {
-    onStartup: false,
-  },
-  kind: "memory",
-  contracts: {
-    tools: [],
-  },
-  configSchema: {
-    type: "object",
-    additionalProperties: false,
-    properties: {},
-  },
-  register() {
-    registerMemoryReranker(createMMRRerankerProvider());
+  name: "Memory MMR Reranker",
+  description:
+    "Bundled OpenClaw MMR (Maximal Marginal Relevance) reranker for memory hybrid search diversity.",
+  register(api) {
+    api.registerMemoryReranker(createMMRRerankerProvider());
   },
 });
