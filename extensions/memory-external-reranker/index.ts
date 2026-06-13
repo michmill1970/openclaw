@@ -13,6 +13,7 @@ export default definePluginEntry({
           modelFallbacks: cfg.modelFallbacks,
           endpointPath: cfg.endpointPath,
           topN: cfg.topN,
+          allowPrivateNetwork: cfg.allowPrivateNetwork,
           additionalBodyParams: cfg.additionalBodyParams,
         },
         api.config,

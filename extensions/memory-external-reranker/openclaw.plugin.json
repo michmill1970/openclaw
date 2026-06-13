@@ -1,0 +1,65 @@
+{
+  "id": "memory-external-reranker",
+  "name": "Memory External Reranker",
+  "description": "OpenClaw memory reranker plugin that proxies to a Cohere-compatible /v1/rerank endpoint (Cohere, Jina, Voyage, llama.cpp).",
+  "activation": {
+    "onStartup": false
+  },
+  "contracts": {
+    "tools": [],
+    "memoryRerankers": ["memory-external-reranker"]
+  },
+  "uiHints": {
+    "provider": {
+      "label": "Provider",
+      "help": "Provider ID from models.providers in the OpenClaw config"
+    },
+    "model": {
+      "label": "Model",
+      "placeholder": "rerank-english-v3.0",
+      "help": "Reranker model id for the selected provider"
+    },
+    "modelFallbacks": {
+      "label": "Model Fallbacks",
+      "advanced": true,
+      "help": "Ordered list of alternate model ids tried on failure"
+    },
+    "endpointPath": {
+      "label": "Endpoint Path",
+      "placeholder": "/v1/rerank",
+      "advanced": true,
+      "help": "HTTP path appended to the provider baseUrl (default '/v1/rerank')"
+    },
+    "topN": {
+      "label": "Top N",
+      "advanced": true,
+      "help": "Maximum number of results returned by the rerank endpoint"
+    },
+    "additionalBodyParams": {
+      "label": "Additional Body Params",
+      "advanced": true,
+      "help": "Extra key/value pairs merged into the rerank request body"
+    },
+    "allowPrivateNetwork": {
+      "label": "Allow Private Network",
+      "advanced": true,
+      "help": "Set to true when the reranker endpoint is on a private or loopback host (e.g. localhost, 192.168.x.x). Restricts outbound access to the configured baseUrl hostname only."
+    }
+  },
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "provider": { "type": "string" },
+      "model": { "type": "string" },
+      "modelFallbacks": {
+        "type": "array",
+        "items": { "type": "string" }
+      },
+      "endpointPath": { "type": "string" },
+      "topN": { "type": "integer", "minimum": 1 },
+      "additionalBodyParams": { "type": "object" },
+      "allowPrivateNetwork": { "type": "boolean" }
+    }
+  }
+}
