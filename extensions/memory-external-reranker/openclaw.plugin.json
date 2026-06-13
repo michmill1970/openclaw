@@ -10,15 +10,19 @@
     "memoryRerankers": ["memory-external-reranker"]
   },
   "uiHints": {
+    "provider": {
+      "label": "Provider",
+      "help": "Provider ID from models.providers in the OpenClaw config"
+    },
     "model": {
       "label": "Model",
-      "placeholder": "cohere/rerank-english-v3.0",
-      "help": "Reranker model id, formatted as 'providerId/model'"
+      "placeholder": "rerank-english-v3.0",
+      "help": "Reranker model id for the selected provider"
     },
     "modelFallbacks": {
       "label": "Model Fallbacks",
       "advanced": true,
-      "help": "Ordered list of alternate 'providerId/model' candidates tried on failure"
+      "help": "Ordered list of alternate model ids tried on failure"
     },
     "endpointPath": {
       "label": "Endpoint Path",
@@ -31,16 +35,22 @@
       "advanced": true,
       "help": "Maximum number of results returned by the rerank endpoint"
     },
-    "providers": {
-      "label": "Providers",
+    "additionalBodyParams": {
+      "label": "Additional Body Params",
       "advanced": true,
-      "help": "Map of providerId → { baseUrl, apiKey } credentials"
+      "help": "Extra key/value pairs merged into the rerank request body"
+    },
+    "allowPrivateNetwork": {
+      "label": "Allow Private Network",
+      "advanced": true,
+      "help": "Set to true when the reranker endpoint is on a private or loopback host (e.g. localhost, 192.168.x.x). Restricts outbound access to the configured baseUrl hostname only."
     }
   },
   "configSchema": {
     "type": "object",
     "additionalProperties": false,
     "properties": {
+      "provider": { "type": "string" },
       "model": { "type": "string" },
       "modelFallbacks": {
         "type": "array",
@@ -48,18 +58,8 @@
       },
       "endpointPath": { "type": "string" },
       "topN": { "type": "integer", "minimum": 1 },
-      "providers": {
-        "type": "object",
-        "additionalProperties": {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "baseUrl": { "type": "string" },
-            "apiKey": { "type": "string" }
-          },
-          "required": ["baseUrl"]
-        }
-      }
+      "additionalBodyParams": { "type": "object" },
+      "allowPrivateNetwork": { "type": "boolean" }
     }
   }
 }
