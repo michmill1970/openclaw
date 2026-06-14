@@ -71,6 +71,7 @@ describe("ExternalMmrReranker", () => {
       {
         provider: "local",
         model: "qwen3-reranker",
+        allowPrivateNetwork: true,
       },
       makeTestConfig({ local: { baseUrl: "http://localhost:8080" } }),
     );
@@ -80,7 +81,7 @@ describe("ExternalMmrReranker", () => {
     expect(mock).toHaveBeenCalledTimes(1);
     expect(guardCallOpts(mock).url).toBe("http://localhost:8080/v1/rerank");
     expect(guardCallOpts(mock).timeoutMs).toBe(DEFAULT_EXTERNAL_RERANKER_TIMEOUT_MS);
-    expect(guardCallOpts(mock).policy).toBeUndefined();
+    expect(guardCallOpts(mock).policy).toMatchObject({ allowPrivateNetwork: true });
     expect(guardCallBody(mock)).toMatchObject({
       query: "neural networks",
       documents: [
@@ -100,6 +101,7 @@ describe("ExternalMmrReranker", () => {
       {
         provider: "local",
         model: "qwen3-reranker",
+        allowPrivateNetwork: true,
         additionalBodyParams: { truncation: true },
       },
       makeTestConfig({ local: { baseUrl: "http://localhost:8080" } }),
@@ -132,6 +134,31 @@ describe("ExternalMmrReranker", () => {
       resolveRerankerNetworkPolicy({ baseUrl: "http://127.0.0.1:8082", allowPrivateNetwork: true }),
     ).toMatchObject({
       allowPrivateNetwork: true,
+    });
+  });
+
+  describe("API key SecretRef resolution", () => {
+    it("throws and does not fetch when a configured SecretRef cannot be resolved", async () => {
+      const mockFn = vi.fn();
+      setExternalRerankerFetchGuardForTesting(mockFn);
+      // Reference an env var that is guaranteed absent in this test.
+      vi.stubEnv("RERANKER_TEST_MISSING_KEY_8f3c2", undefined as never);
+
+      const reranker = new ExternalMmrReranker(
+        { provider: "cohere", model: "rerank-english-v3.0" },
+        makeTestConfig({
+          cohere: {
+            baseUrl: "https://api.cohere.ai",
+            apiKey: { source: "env", provider: "default", id: "RERANKER_TEST_MISSING_KEY_8f3c2" },
+          },
+        }),
+      );
+
+      const docs: RerankDocument[] = [{ id: "doc-1", content: "hello", score: 0.5 }];
+      await expect(reranker.rerank({ query: "test", documents: docs, limit: 5 })).rejects.toThrow(
+        /API key SecretRef for provider cohere could not be resolved/,
+      );
+      expect(mockFn).not.toHaveBeenCalled();
     });
   });
 });

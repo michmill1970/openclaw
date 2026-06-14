@@ -9,6 +9,7 @@ import { resolveConfiguredSecretInputString } from "openclaw/plugin-sdk/secret-i
 import {
   buildHostnameAllowlistPolicyFromSuffixAllowlist,
   fetchWithSsrFGuard,
+  isPrivateOrLoopbackHost,
   mergeSsrFPolicies,
   ssrfPolicyFromDangerouslyAllowPrivateNetwork,
   type SsrFPolicy,
@@ -43,6 +44,14 @@ export function resolveRerankerNetworkPolicy(params: {
     buildHostnameAllowlistPolicyFromSuffixAllowlist([hostname]),
     ssrfPolicyFromDangerouslyAllowPrivateNetwork(true),
   );
+}
+
+export function requiresRerankerPrivateNetworkOptIn(baseUrl: string): boolean {
+  try {
+    return isPrivateOrLoopbackHost(new URL(baseUrl).hostname);
+  } catch {
+    return false;
+  }
 }
 
 let rerankerFetchGuard = fetchWithSsrFGuard;
@@ -116,12 +125,25 @@ export class ExternalMmrReranker implements MemoryRerankerPlugin {
     if (!providerEntry) {
       throw new Error(`no models.providers entry for provider: ${providerId}`);
     }
-    const { value: apiKey } = await resolveConfiguredSecretInputString({
+    if (
+      requiresRerankerPrivateNetworkOptIn(providerEntry.baseUrl) &&
+      this.cfg.allowPrivateNetwork !== true
+    ) {
+      throw new Error(
+        `Provider ${providerId} baseUrl (${providerEntry.baseUrl}) targets a private or loopback host. Set memory-external-reranker.allowPrivateNetwork=true to opt in.`,
+      );
+    }
+    const { value: apiKey, unresolvedRefReason } = await resolveConfiguredSecretInputString({
       config: this.openclawConfig,
       env: process.env,
       value: providerEntry.apiKey,
       path: `models.providers.${providerId}.apiKey`,
     });
+    if (unresolvedRefReason) {
+      throw new Error(
+        `[memory-external-reranker] API key SecretRef for provider ${providerId} could not be resolved: ${unresolvedRefReason}`,
+      );
+    }
     const ssrfPolicy = resolveRerankerNetworkPolicy({
       baseUrl: providerEntry.baseUrl,
       allowPrivateNetwork: this.cfg.allowPrivateNetwork,
