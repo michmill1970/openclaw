@@ -6,7 +6,7 @@ import {
   ExternalMmrReranker,
   resolveRerankerNetworkPolicy,
   setExternalRerankerFetchGuardForTesting,
-} from "./reranker.js";
+} from "./memory-external-reranker.js";
 
 afterEach(() => {
   setExternalRerankerFetchGuardForTesting(null);

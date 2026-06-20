@@ -1,5 +1,5 @@
 import { definePluginEntry } from "openclaw/plugin-sdk/plugin-entry";
-import { mmrRerank } from "./src/mmr-reranker.js";
+import { mmrRerank } from "./src/memory-mmr.js";
 
 export function createMMRRerankerProvider() {
   return {

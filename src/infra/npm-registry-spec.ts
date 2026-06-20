@@ -135,6 +135,14 @@ export function isOpenClawOrgNpmSpec(rawSpec: string | undefined): boolean {
   return parsed?.name.startsWith("@openclaw/") === true;
 }
 
+/** Returns whether an npm spec names an official memory reranker package. */
+export function isOfficialMemoryRerankerNpmSpec(rawSpec: string | undefined): boolean {
+  const parsed = rawSpec ? parseRegistryNpmSpec(rawSpec) : null;
+  return (
+    parsed?.name === "@openclaw/memory-mmr" || parsed?.name === "@openclaw/memory-external-reranker"
+  );
+}
+
 /** Validates a registry-only npm spec and returns a user-facing error when rejected. */
 export function validateRegistryNpmSpec(rawSpec: string): string | null {
   const parsed = parseRegistryNpmSpecInternal(rawSpec);
