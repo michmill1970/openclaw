@@ -17,13 +17,18 @@ beforeEach(() => {
   vi.clearAllMocks();
 });
 
-function makeTestConfig(providers: Record<string, { baseUrl: string; apiKey?: unknown }>) {
+function makeTestConfig(
+  providers: Record<
+    string,
+    { baseUrl: string; apiKey?: unknown; request?: { allowPrivateNetwork?: boolean } }
+  >,
+) {
   return {
     models: {
       providers: Object.fromEntries(
         Object.entries(providers).map(([id, entry]) => [
           id,
-          { baseUrl: entry.baseUrl, apiKey: entry.apiKey },
+          { baseUrl: entry.baseUrl, apiKey: entry.apiKey, request: entry.request },
         ]),
       ),
     },
@@ -122,6 +127,27 @@ describe("ExternalMmrReranker", () => {
         allowPrivateNetwork: true,
       },
       makeTestConfig({ local: { baseUrl: "http://127.0.0.1:8082" } }),
+    );
+
+    await reranker.rerank({ query: "test", documents: sampleDocs.slice(0, 1), limit: 1 });
+
+    expect(guardCallOpts(mock).policy).toMatchObject({ allowPrivateNetwork: true });
+  });
+
+  it("uses the provider request.allowPrivateNetwork setting for private hosts", async () => {
+    const mock = mockOkGuard([{ index: 0, relevance_score: 0.9 }]);
+
+    const reranker = new ExternalMmrReranker(
+      {
+        provider: "local",
+        model: "qwen3-reranker",
+      },
+      makeTestConfig({
+        local: {
+          baseUrl: "http://127.0.0.1:8082",
+          request: { allowPrivateNetwork: true },
+        },
+      }),
     );
 
     await reranker.rerank({ query: "test", documents: sampleDocs.slice(0, 1), limit: 1 });
