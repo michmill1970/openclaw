@@ -135,6 +135,14 @@ export function isOpenClawOrgNpmSpec(rawSpec: string | undefined): boolean {
   return parsed?.name.startsWith("@openclaw/") === true;
 }
 
+/** Returns whether an npm spec names an official memory reranker package. */
+export function isOfficialMemoryRerankerNpmSpec(rawSpec: string | undefined): boolean {
+  const parsed = rawSpec ? parseRegistryNpmSpec(rawSpec) : null;
+  return (
+    parsed?.name === "@openclaw/memory-mmr" || parsed?.name === "@openclaw/memory-external-reranker"
+  );
+}
+
 /** Validates a registry-only npm spec and returns a user-facing error when rejected. */
 export function validateRegistryNpmSpec(rawSpec: string): string | null {
   const parsed = parseRegistryNpmSpecInternal(rawSpec);
@@ -275,5 +283,8 @@ export function formatPrereleaseResolutionError(params: {
     normalizeLowercaseStringOrEmpty(params.spec.selector) === "latest"
       ? `Use "${params.spec.name}@beta" (or another prerelease tag) or an exact prerelease version to opt in explicitly.`
       : `Use an explicit prerelease tag or exact prerelease version if you want prerelease installs.`;
-  return `Resolved ${params.spec.raw} to prerelease version ${params.resolvedVersion}, but prereleases are only installed when explicitly requested. ${selectorHint}`;
+  const memoryRerankerHint = isOfficialMemoryRerankerNpmSpec(params.spec.raw)
+    ? ' For memory rerankers, the official package names are "@openclaw/memory-mmr" and "@openclaw/memory-external-reranker".'
+    : "";
+  return `Resolved ${params.spec.raw} to prerelease version ${params.resolvedVersion}, but prereleases are only installed when explicitly requested. ${selectorHint}${memoryRerankerHint}`;
 }

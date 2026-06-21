@@ -4,6 +4,7 @@ import {
   compareOpenClawReleaseVersions,
   formatPrereleaseResolutionError,
   isExactSemverVersion,
+  isOfficialMemoryRerankerNpmSpec,
   isOpenClawOrgNpmSpec,
   isOpenClawStableCorrectionVersion,
   isPrereleaseSemverVersion,
@@ -122,6 +123,15 @@ describe("npm registry spec parsing helpers", () => {
     { value: "1.2", expected: false },
   ])("detects exact semver versions for %s", ({ value, expected }) => {
     expect(isExactSemverVersion(value)).toBe(expected);
+  });
+
+  it.each([
+    { spec: "@openclaw/memory-mmr", expected: true },
+    { spec: "@openclaw/memory-external-reranker", expected: true },
+    { spec: "@openclaw/voice-call", expected: false },
+    { spec: "@other/memory-mmr", expected: false },
+  ])("detects official memory reranker npm specs for %s", ({ spec, expected }) => {
+    expect(isOfficialMemoryRerankerNpmSpec(spec)).toBe(expected);
   });
 
   it.each([
