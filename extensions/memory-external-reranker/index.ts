@@ -3,6 +3,9 @@ import { ExternalMmrReranker, type ExternalRerankerConfig } from "./src/reranker
 
 export default definePluginEntry({
   id: "memory-external-reranker",
+  name: "Memory External Reranker",
+  description:
+    "Bundled OpenClaw external reranker plugin for memory hybrid search using a provider-compatible rerank endpoint.",
   register(api) {
     const cfg = (api.pluginConfig ?? {}) as Partial<ExternalRerankerConfig>;
     api.registerMemoryReranker(
