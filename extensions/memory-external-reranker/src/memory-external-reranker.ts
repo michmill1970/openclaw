@@ -69,12 +69,6 @@ export type ExternalRerankerConfig = {
   endpointPath?: string;
   topN?: number;
   /**
-   * Opt in to reranking from a private/loopback host (e.g. localhost, 192.168.x.x).
-   * When true and the provider baseUrl resolves to a private host, access is restricted
-   * to that specific hostname only. Has no effect for public cloud endpoints.
-   */
-  allowPrivateNetwork?: boolean;
-  /**
    * Extra fields merged into the rerank request body verbatim.
    * Useful for provider-specific parameters (e.g. `max_chunks_per_doc` for Cohere,
    * `truncation` for Voyage AI) without requiring code changes.
@@ -125,12 +119,10 @@ export class ExternalMmrReranker implements MemoryRerankerPlugin {
     if (!providerEntry) {
       throw new Error(`no models.providers entry for provider: ${providerId}`);
     }
-    if (
-      requiresRerankerPrivateNetworkOptIn(providerEntry.baseUrl) &&
-      this.cfg.allowPrivateNetwork !== true
-    ) {
+    const allowPrivateNetwork = providerEntry.request?.allowPrivateNetwork === true;
+    if (requiresRerankerPrivateNetworkOptIn(providerEntry.baseUrl) && !allowPrivateNetwork) {
       throw new Error(
-        `Provider ${providerId} baseUrl (${providerEntry.baseUrl}) targets a private or loopback host. Set memory-external-reranker.allowPrivateNetwork=true to opt in.`,
+        `Provider ${providerId} baseUrl (${providerEntry.baseUrl}) targets a private or loopback host. Set models.providers.${providerId}.request.allowPrivateNetwork=true to opt in.`,
       );
     }
     const { value: apiKey, unresolvedRefReason } = await resolveConfiguredSecretInputString({
@@ -146,7 +138,7 @@ export class ExternalMmrReranker implements MemoryRerankerPlugin {
     }
     const ssrfPolicy = resolveRerankerNetworkPolicy({
       baseUrl: providerEntry.baseUrl,
-      allowPrivateNetwork: this.cfg.allowPrivateNetwork,
+      allowPrivateNetwork,
     });
     const errors: Error[] = [];
 
